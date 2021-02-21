@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+<head>
+	<title>Realm Weather Service : Royal Advisory Board</title>
+	<link rel="stylesheet" href="../lib/bootstrap.min.css">
+	<link rel="stylesheet" href="../index.css">
+
+	<script src="../lib/jquery-2.1.4.min.js"></script>
+	<script src="../lib/bootstrap.min.js"></script>
+    <script src="../lib/pako.js"></script>
+
+    <script src="../lib/zlib.min.js"></script>
+    <script src="../lib/savecodec2.js"></script>
+    <script src="../lib/pmprng.js"></script>
+    <script src="../lib/util.js"></script>
+    <script src="index.js"></script>
+	<script src="tabs.js"></script>
+	<style>
+	body {font-family: Arial;}
+
+	/* Style the tab */
+	.tab {
+	overflow: hidden;
+	border: 1px solid #ccc;
+	background-color: #f1f1f1;
+	}
+
+	/* Style the buttons inside the tab */
+	.tab button {
+		background-color: inherit;
+		float: left;
+		border: none;
+		outline: none;
+		cursor: pointer;
+		padding: 14px 16px;
+		transition: 0.3s;
+		font-size: 17px;
+	}
+
+	/* Change background color of buttons on hover */
+	.tab button:hover {
+		background-color: #ddd;
+	}
+
+	/* Create an active/current tablink class */
+	.tab button.active {
+		background-color: #ccc;
+	}
+
+	/* Style the tab content */
+	.tabcontent {
+		display: none;
+		padding: 6px 12px;
+		border: 1px solid #ccc;
+		border-top: none;
+	}
+	</style>
+
+</head>
+<body>
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#nav-collapsable-content" aria-expanded="false">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="../index.html">Royal Advisory Board</a>
+			</div>
+			<div class="collapse navbar-collapse" id="nav-collapsable-content">
+				<ul class="nav navbar-nav">
+					<li><a href="../index.html">Home</a></li>
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Realm Grinder <span class="caret"></span></a>
+						<ul class="dropdown-menu">
+							<li><a href="http://www.kongregate.com/games/divinegames/realm-grinder">Realm Grinder</a></li>
+							<li><a href="http://www.divinegames.it/">Divine Games</a></li>
+							<li><a href="http://musicfamily.org/realm/">G00F's Not a Wiki</a></li>
+							<li><a href="https://discord.gg/3YvX9hN">Discord Chat - Realm Grinder and more</a></li>
+						</ul>
+					</li>
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Useful Tools <span class="caret"></span></a>
+						<ul class="dropdown-menu">
+							<li><a href="../rws/index.html">Realm Weather Service</a></li>
+							<li><a href='../arch/index.html'>Lara Crypt</a></li>
+							<li><a href='../edit/edit.html'>Save Editor</a></li>
+						</ul>
+					</li>
+					<li class='dropdown'>
+						<a href='#' class='dropdown-toggle' data-toggle='dropdown' role='button' aria-haspopup='true' aria-expanded='false'>Seasonal Tools <span class='caret'></span></a>
+						<ul class='dropdown-menu'>
+							<li><a href='../mri/index.html'>Meggnetic Resonance Imager</a></li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+	<div class="container">
+		<h2 id="title" class="page-header">Realm Weather Service <small>Because Luck is a Fallacy</small></h2>
+		<div class="panel panel-primary">
+			<div class="panel-heading">Your court meteorologist looks at you expectantly. "Your Majesty, I will need the kingdom's records in order to produce a forecast," he says.</div>
+			<div class="panel-body input-group panelSaveInput">
+				<label id="saveInputLabel" class="input-group-addon" for="saveInput"><a title="Save" data-toggle="popover" data-trigger="hover" data-placement="bottom" data-content="Export your save from Realm Grinder and paste it in this field to view your forecast.">Save (?)</a></label>
+				<input id="saveInput" class="form-control" type="text" name="saveInput" value="">
+				<div class="input-group-btn">
+					<button id="doReEnter" class="btn btn-success" type="button">Re-Enter save</button>
+					<button id="doSaveCopy" class="btn btn-info" type="button">Copy save</button>
+					<button id="doSaveClear" class="btn btn-danger" type="button">Clear save</button>
+				</div>
+			</div>
+		</div>
+		<div class="alert alert-info" v-show="breathMessage != ''">Dragon's breath forecast fixed, Maelstrom and Limited wish forecast added (Limited wish is a bit inaccurate due to issues)</div>
+		<div class="row">
+			<div class="col-xs-12">
+				<div id="buildings"></div>
+			</div>
+		</div>
+		<br>
+		<div class="tab">
+			<button class="tablinks" onclick="openForecast(event, 'LS')">Lightning Strike</button>
+			<button class="tablinks" onclick="openForecast(event, 'Miracle')">Miracle</button>
+			<button class="tablinks" onclick="openForecast(event, 'DB')">Dragon's Breath</button>
+			<button class="tablinks" onclick="openForecast(event, 'MS')">Maelstrom</button>
+            <button class="tablinks" onclick="openForecast(event, 'LW')">Limited Wish</button>
+            <button class="tablinks" onclick="openForecast(event, 'Cata')">Catalyst</button>
+			<button class="tablinks" onclick="openForecast(event, 'DJC4')">Worldly Desires</button>
+		</div>
+		<div id="LS" class="tabcontent">
+				<br>
+				<div id="lightningMessage"></div>
+				<br>
+				<div id="lightningForecast"></div>
+		</div>
+		<div id="Miracle" class="tabcontent">
+				<br>
+				<div id="miracleMessage"></div>
+				<br>
+				<div id="miracleForecast"></div>
+		</div>
+		<div id="DB" class="tabcontent">
+				<br>
+				<div id="breathMessage"></div>
+				<br>
+				<div id="breathForecast"></div>
+		</div>
+		<div id="MS" class="tabcontent">
+				<br>
+				<div id="maelstromMessage"></div>
+				<br>
+				<div id="maelstromForecast"></div>
+		</div>
+        <div id="LW" class="tabcontent">
+				<br>
+				<div id="limitedWishMessage"></div>
+				<div hidden id="limitedWishForecastOptions"><br><b>Show Forecast By: </b><br>
+				<input type="radio" name="LWForecastType" value="value" checked> Value <br>
+				<input type="radio" name="LWForecastType" value="percentage"> Percentage <br> </div>
+				<br>
+				<div id="limitedWishForecast"></div>
+				<div id="limitedWishForecastAlt"></div>
+		</div>
+		<div id="Cata" class="tabcontent">
+				<br>
+				<div id="catalystMessage"></div>
+				<div id="catalystCurrent"></div>
+				<br>
+				<div id="catalystForecast"></div>
+		</div>
+		<div id="DJC4" class="tabcontent">
+				<br>
+				<div id='DJC4Message'></div>
+				<br>
+				<div id='DJC4Forecast'></div>
+		</div>
+	</div>
+	</div>
+</body>
+</html>
