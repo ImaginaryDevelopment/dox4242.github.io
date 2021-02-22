@@ -8,8 +8,10 @@ open Fable.React.Props
 open Fulma
 
 open Shared
+open Infrastructure
 
-
+// don't open Fable.Core.JS it conflicts with Set<'t>
+type Promise<'t> = Fable.Core.JS.Promise<'t>
 
 [<RequireQualifiedAccess>]
 type RwsTab =
@@ -25,7 +27,8 @@ type Model = {
                 SaveInput:string // current input value
                 ProcessedSave:string // last successfully parsed input
                 SelectedTab:RwsTab
-                HighlightedBuildings: Building Set
+                HighlightedBuildings:Building Set
+                Save:DecodedSave option
             }
     with
         static member Empty = {
@@ -33,21 +36,63 @@ type Model = {
             ProcessedSave = String.Empty
             SelectedTab = RwsTab.LightningStrike
             HighlightedBuildings = Set.empty
+            Save = None
         }
 
 type Msg =
     | TabSelect of RwsTab
-    | MaelstromMsg of Maelstrom.Msg
+    | InputChanged of string
+    | EnterSave
+    | CopySave
+    | ClearSave
 
 let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     match msg with
-    | MaelstromMsg (Maelstrom.Msg.InputChanged v) ->
+    | InputChanged v ->
         {model with SaveInput = v}, Cmd.none
-    | MaelstromMsg (Maelstrom.Msg.ClearSave) ->
+    | ClearSave ->
         {model with SaveInput = String.Empty}, Cmd.none
-    | MaelstromMsg (Maelstrom.Msg.CopySave) ->
+    | CopySave ->
         model, Cmd.none
+    | EnterSave ->
+        if isValueString model.SaveInput then
+            printfn "Save is: %s" model.SaveInput
+            {model with Save = Helpers.Imports.Savecodec2.getSaveHandler.Decode(model.SaveInput) |> Some }, Cmd.none
+        else
+            model, Cmd.none
+    | TabSelect _ -> model, Cmd.none
 
+let copy text = // not using dispatch/command. might be bad idea
+        try
+            Browser.Navigator.navigator.clipboard
+            |> function
+                | Some clipboard -> clipboard.writeText text |> ignore<Promise<unit>>
+                | None -> eprintfn "No clipboard found"
+        with _ -> ()
+
+let saveInput (saveText:string) dispatch =
+    let inputId = "saveInput"
+    div[Class "panel-body input-group panelSaveInput"][
+        label[Id "saveInputLabel";Class "input-group-addon"; HtmlFor "saveInput"][
+            a [ Data("toggle","popover");Data("trigger","hover");Data("placement","bottom")
+                Data("content","'Export your save from Realm Grinder and paste it in this field to view a forecast of eggs that you will find in the Easter event.'>(?)" )
+            ][
+                unbox "Save (?)"
+            ]
+        ]
+        input [Id inputId; Class "form-control"; Type "text"; Name "saveInput"; Value saveText;OnChange (fun e -> e.Value |> InputChanged |> dispatch)]
+        div [Class "input-group-btn"][
+            let btn id (title:string) cls (clickMsg:Msg) =
+                button [Id id; Class <| "btn btn-" + cls; Type "Button";OnClick (fun _ -> dispatch clickMsg)][unbox title]
+            yield btn "doReEnter" "Re-Enter save" "success" EnterSave
+            yield button [  Id "doSaveCopy";Class <| "btn btn-info"; Type "Button"
+                            OnClick (fun _ -> copy saveText)
+                            OnPaste (fun _ -> dispatch EnterSave)
+                        ][unbox "Copy save"]
+            // yield btn "doSaveCopy" "Copy save" "info" CopySave
+            yield btn "doSaveClear" "Clear save" "danger" ClearSave
+        ]
+    ]
 
 let view (model:Model) dispatch =
     let onClick msg = OnClick(fun _ -> dispatch msg)

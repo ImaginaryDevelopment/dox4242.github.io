@@ -10,7 +10,9 @@
         <None Include="style.scss" />
         <Compile Include="Version.fs" />
         <Compile Include="..\Shared\Shared.fs" />
+        <Compile Include="..\Shared\Infrastructure.fs" />
         <Compile Include="Helpers\FableHelpers.fs" />
+        <Compile Include="Helpers\Savecodec2.fs" />
         <Compile Include="rws\Maelstrom.fs" />
         <Compile Include="rws\Main.fs" />
         <Compile Include="Client.fs" />

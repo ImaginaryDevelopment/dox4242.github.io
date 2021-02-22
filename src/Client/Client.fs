@@ -13,6 +13,11 @@ open Thoth.Json
 
 open Shared
 
+let inline importAll<'t> x = Fable.Core.JsInterop.importAll<'t> x
+
+// importAll "bootstrap.min.css"
+importAll "pako"
+
 
 // The model holds data that you want to keep track of while the application is running
 // in this case, we are keeping track of a counter
@@ -35,8 +40,6 @@ type Msg =
 
 // defines the initial state and initial command (= side-effect) of the application
 let init () : Model * Cmd<Msg> =
-    Rws.Maelstrom.init()
-
     let initialModel = Model.Empty
     initialModel, Cmd.none
 
@@ -50,10 +53,11 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
         if rm <> model.RwsModel then
             {model with RwsModel = rm}, cmd |> Cmd.map Msg.RwsMsg
         else model, cmd |> Cmd.map Msg.RwsMsg
-    | _ -> model, Cmd.none
+    // | _ -> model, Cmd.none
+
 let navbar =
-        Navbar.navbar [ Navbar.CustomClass "navbar-inverse navbar navbar-fixed-top" ] [
-            Navbar.Item.div [ Navbar.Item.CustomClass "container-fluid" ] [
+        Navbar.navbar [ Navbar.CustomClass "navbar-inverse navbar-fixed-top" ] [
+            div [ Class "container-fluid" ] [
                 div [Class "navbar-header"][
                     button  [   Type "button"; Class "navbar-toggle collapsed"
                                 Data("toggle","collapse")
@@ -116,7 +120,7 @@ let view (model : Model) (dispatch : Msg -> unit) =
                 div[Class "panel-heading"][
                     unbox """Your court meteorologist looks at you expectantly. "Your Majesty, I will need the kingdom's records in order to produce a forecast," he says."""
                 ]
-                Rws.Maelstrom.saveInput model.RwsModel.SaveInput (Rws.Main.MaelstromMsg >> RwsMsg >> dispatch)
+                Rws.Main.saveInput model.RwsModel.SaveInput (RwsMsg >> dispatch)
             ]
             div [Class "alert alert-info"; HTMLAttr.Custom ("v-show","breathMessage != ''")][
                 unbox "Dragon's breath forecast fixed, Maelstrom and Limited wish forecast added (Limited wish is a bit inaccurate due to issues)"
@@ -133,7 +137,10 @@ let view (model : Model) (dispatch : Msg -> unit) =
                 [ Content.content [ Content.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
                     [ unbox "footer content goes here"] ] ]
 
-Fable.Core.JsInterop.importAll "clipboard"
+
+// Fable.Core.JsInterop.importAll "punycode"
+// Fable.Core.JsInterop.importAll "popper"
+// Fable.Core.JsInterop.importAll "bootstrap"
 #if DEBUG
 open Elmish.Debug
 open Elmish.HMR
